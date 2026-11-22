@@ -20,7 +20,7 @@ class PostRepository(
 
     suspend fun fetchPosts(page: Int, limit: Int, tags: String?): List<Post> {
         val normalized = tags?.trim()?.takeIf { it.isNotEmpty() }
-        return api.getPosts(page = page, limit = limit, tags = normalized)
+        return api.getPosts(page = page, limit = limit, tags = normalized).posts
     }
 
     fun observeIsFavorite(id: Long): Flow<Boolean> = favoritesDao.observeIsFavorite(id)
