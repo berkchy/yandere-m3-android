@@ -23,28 +23,35 @@ import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ChevronLeft
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.rounded.ChevronLeft
+import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.Explicit
+import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.Shield
+import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -104,36 +111,43 @@ fun GalleryScreen(
                 title = { Text("Explore") },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
                 actions = {
-                    IconButton(onClick = onRefresh) { Icon(Icons.Filled.Refresh, contentDescription = "Refresh") }
-                    IconButton(onClick = { showSettings = true }) { Icon(Icons.Filled.Settings, contentDescription = "Settings") }
+                    IconButton(onClick = onRefresh) { Icon(Icons.Rounded.Refresh, contentDescription = "Refresh") }
+                    IconButton(onClick = { showSettings = true }) { Icon(Icons.Rounded.Settings, contentDescription = "Settings") }
                 }
             )
         }
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
             Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, tonalElevation = 1.dp) {
-                Column(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Column(modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)) {
                     OutlinedTextField(
                         value = state.query,
                         onValueChange = onQueryChange,
-                        modifier = Modifier.fillMaxWidth().height(44.dp),
+                        modifier = Modifier.fillMaxWidth().height(48.dp),
                         singleLine = true,
+                        shape = RoundedCornerShape(24.dp),
                         placeholder = { Text("Search tags", style = MaterialTheme.typography.bodySmall) },
-                        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                        leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null, modifier = Modifier.size(18.dp)) },
                         trailingIcon = {
-                            TextButton(onClick = onSearch, contentPadding = PaddingValues(horizontal = 6.dp), modifier = Modifier.height(32.dp)) {
-                                Text("Go", style = MaterialTheme.typography.labelMedium)
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                RatingIconButton(selected = state.safeEnabled, icon = Icons.Rounded.Shield, contentDescription = "Safe") {
+                                    onRatingsChange(!state.safeEnabled, state.questionableEnabled, state.explicitEnabled)
+                                }
+                                RatingIconButton(selected = state.questionableEnabled, icon = Icons.Rounded.WarningAmber, contentDescription = "Questionable") {
+                                    onRatingsChange(state.safeEnabled, !state.questionableEnabled, state.explicitEnabled)
+                                }
+                                RatingIconButton(selected = state.explicitEnabled, icon = Icons.Rounded.Explicit, contentDescription = "Explicit") {
+                                    onRatingsChange(state.safeEnabled, state.questionableEnabled, !state.explicitEnabled)
+                                }
+                                TextButton(onClick = onSearch, contentPadding = PaddingValues(horizontal = 8.dp), modifier = Modifier.height(32.dp)) {
+                                    Text("Go", style = MaterialTheme.typography.labelMedium)
+                                }
                             }
                         },
                         textStyle = MaterialTheme.typography.bodySmall,
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                         keyboardActions = KeyboardActions(onSearch = { onSearch() })
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                        FilterChip(selected = state.safeEnabled, onClick = { onRatingsChange(!state.safeEnabled, state.questionableEnabled, state.explicitEnabled) }, label = { Text("S", style = MaterialTheme.typography.labelSmall) })
-                        FilterChip(selected = state.questionableEnabled, onClick = { onRatingsChange(state.safeEnabled, !state.questionableEnabled, state.explicitEnabled) }, label = { Text("Q", style = MaterialTheme.typography.labelSmall) })
-                        FilterChip(selected = state.explicitEnabled, onClick = { onRatingsChange(state.safeEnabled, state.questionableEnabled, !state.explicitEnabled) }, label = { Text("E", style = MaterialTheme.typography.labelSmall) })
-                    }
                 }
             }
 
@@ -210,6 +224,7 @@ fun GalleryScreen(
                     onValueChange = onDownloadFolderChange,
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
+                    shape = RoundedCornerShape(16.dp),
                     label = { Text("Download subfolder") },
                     placeholder = { Text("Pictures/YandeM3") }
                 )
@@ -219,8 +234,8 @@ fun GalleryScreen(
                 Text("Filename pattern", style = MaterialTheme.typography.bodyMedium)
                 Spacer(Modifier.height(4.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(selected = settings.filenamePattern == "post_id", onClick = { onFilenamePatternChange("post_id") }, label = { Text("Post ID") })
-                    FilterChip(selected = settings.filenamePattern == "yande_id_md5", onClick = { onFilenamePatternChange("yande_id_md5") }, label = { Text("yande_<id>_<hash>") })
+                    FilterChip(selected = settings.filenamePattern == "post_id", onClick = { onFilenamePatternChange("post_id") }, label = { Text("Post ID") }, shape = RoundedCornerShape(16.dp))
+                    FilterChip(selected = settings.filenamePattern == "yande_id_md5", onClick = { onFilenamePatternChange("yande_id_md5") }, label = { Text("yande_<id>_<hash>") }, shape = RoundedCornerShape(16.dp))
                 }
                 Spacer(Modifier.height(24.dp))
             }
@@ -243,28 +258,39 @@ private fun PaginationBar(
     pageSizeExpanded: Boolean,
     onPageSizeExpandedChange: (Boolean) -> Unit
 ) {
+    val compactFieldColors = OutlinedTextFieldDefaults.colors(
+        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+    )
     Surface(color = MaterialTheme.colorScheme.surfaceContainer, tonalElevation = 0.dp) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 2.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            IconButton(onClick = onPrev, enabled = page > 1, modifier = Modifier.size(28.dp)) {
-                Icon(Icons.Filled.ChevronLeft, contentDescription = "Previous page", modifier = Modifier.size(18.dp))
+            FilledTonalIconButton(onClick = onPrev, enabled = page > 1, modifier = Modifier.size(34.dp), shape = RoundedCornerShape(12.dp)) {
+                Icon(Icons.Rounded.ChevronLeft, contentDescription = "Previous page", modifier = Modifier.size(18.dp))
             }
-            Text("$page", style = MaterialTheme.typography.labelMedium)
-            IconButton(onClick = onNext, modifier = Modifier.size(28.dp)) {
-                Icon(Icons.Filled.ChevronRight, contentDescription = "Next page", modifier = Modifier.size(18.dp))
+            Surface(shape = RoundedCornerShape(12.dp), color = MaterialTheme.colorScheme.surfaceContainerHigh) {
+                Text("$page", style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp))
+            }
+            FilledTonalIconButton(onClick = onNext, modifier = Modifier.size(34.dp), shape = RoundedCornerShape(12.dp)) {
+                Icon(Icons.Rounded.ChevronRight, contentDescription = "Next page", modifier = Modifier.size(18.dp))
             }
             OutlinedTextField(
                 value = jumpPageText,
                 onValueChange = onJumpPageTextChange,
                 singleLine = true,
-                modifier = Modifier.width(56.dp).height(40.dp),
+                modifier = Modifier.width(64.dp).height(40.dp),
+                shape = RoundedCornerShape(12.dp),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Go),
                 keyboardActions = KeyboardActions(onGo = { onJump() }),
-                textStyle = MaterialTheme.typography.labelSmall
+                textStyle = MaterialTheme.typography.labelSmall,
+                colors = compactFieldColors
             )
-            TextButton(onClick = onJump, contentPadding = PaddingValues(horizontal = 2.dp), modifier = Modifier.height(32.dp)) { Text("Go", style = MaterialTheme.typography.labelSmall) }
+            TextButton(onClick = onJump, contentPadding = PaddingValues(horizontal = 8.dp), modifier = Modifier.height(34.dp), shape = RoundedCornerShape(12.dp)) {
+                Text("Go", style = MaterialTheme.typography.labelSmall)
+            }
             Spacer(Modifier.weight(1f))
             ExposedDropdownMenuBox(expanded = pageSizeExpanded, onExpandedChange = onPageSizeExpandedChange) {
                 OutlinedTextField(
@@ -273,8 +299,10 @@ private fun PaginationBar(
                     readOnly = true,
                     singleLine = true,
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = pageSizeExpanded) },
-                    modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).width(76.dp).height(40.dp),
-                    textStyle = MaterialTheme.typography.labelSmall
+                    modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).width(84.dp).height(40.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    textStyle = MaterialTheme.typography.labelSmall,
+                    colors = compactFieldColors
                 )
                 ExposedDropdownMenu(expanded = pageSizeExpanded, onDismissRequest = { onPageSizeExpandedChange(false) }) {
                     pageSizes.forEach { size ->
@@ -283,6 +311,21 @@ private fun PaginationBar(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun RatingIconButton(selected: Boolean, icon: androidx.compose.ui.graphics.vector.ImageVector, contentDescription: String, onClick: () -> Unit) {
+    FilledTonalIconButton(
+        onClick = onClick,
+        modifier = Modifier.size(30.dp),
+        shape = RoundedCornerShape(10.dp),
+        colors = IconButtonDefaults.filledTonalIconButtonColors(
+            containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest,
+            contentColor = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    ) {
+        Icon(icon, contentDescription = contentDescription, modifier = Modifier.size(16.dp))
     }
 }
 
