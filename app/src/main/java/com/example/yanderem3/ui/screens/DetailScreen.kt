@@ -68,8 +68,6 @@ fun DetailScreen(
     onBack: () -> Unit,
     onToggleFavorite: () -> Unit,
     onTagClick: (String) -> Unit,
-    animatedVisibilityScope: androidx.compose.animation.AnimatedVisibilityScope,
-    sharedTransitionScope: androidx.compose.animation.SharedTransitionScope
 ) {
     val context = LocalContext.current
     val clipboard = LocalClipboardManager.current

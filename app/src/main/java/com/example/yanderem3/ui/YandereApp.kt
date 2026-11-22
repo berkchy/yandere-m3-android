@@ -104,9 +104,7 @@ fun YandereApp(viewModel: AppViewModel) {
                         onPostClick = { post ->
                             viewModel.selectPost(post)
                             navController.navigate(Routes.detail(post.id))
-                        },
-                        animatedVisibilityScope = this@composable,
-                        sharedTransitionScope = this@SharedTransitionLayout
+                        }
                     )
                 }
                 composable(
@@ -131,9 +129,7 @@ fun YandereApp(viewModel: AppViewModel) {
                         onTagClick = { tag ->
                             viewModel.searchTag(tag)
                             navController.popBackStack(Routes.GALLERY, inclusive = false)
-                        },
-                        animatedVisibilityScope = this@composable,
-                        sharedTransitionScope = this@SharedTransitionLayout
+                        }
                     )
                 }
                 composable(Routes.FAVORITES) {
@@ -156,9 +152,7 @@ fun YandereApp(viewModel: AppViewModel) {
                                 launchSingleTop = true
                                 restoreState = true
                             }
-                        },
-                        animatedVisibilityScope = this@composable,
-                        sharedTransitionScope = this@SharedTransitionLayout
+                        }
                     )
                 }
             }
