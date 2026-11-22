@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.yanderem3"
+    namespace = "app.yande.re"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.yanderem3"
+        applicationId = "app.yande.re"
         minSdk = 26
         targetSdk = 35
         versionCode = 1

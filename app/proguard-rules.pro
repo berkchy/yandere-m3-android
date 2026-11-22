@@ -1,8 +1,8 @@
 -keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod
 -dontwarn org.slf4j.impl.StaticLoggerBinder
 
--keep class com.example.yanderem3.model.** { *; }
--keep class com.example.yanderem3.data.remote.** { *; }
+-keep class app.yande.re.model.** { *; }
+-keep class app.yande.re.data.remote.** { *; }
 -keep @kotlinx.serialization.Serializable class * { *; }
 -keepclassmembers class ** {
     @kotlinx.serialization.SerialName <fields>;
