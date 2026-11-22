@@ -96,7 +96,6 @@ fun GalleryScreen(
     var jumpPageText by rememberSaveable(state.page) { mutableStateOf(state.page.toString()) }
     var pageSizeExpanded by remember { mutableStateOf(false) }
     val pageSizes = listOf(20, 40, 60)
-    val quickTags = listOf("landscape", "night", "sky", "city", "water")
 
     Scaffold(
         topBar = {
@@ -118,26 +117,27 @@ fun GalleryScreen(
                 .padding(padding)
         ) {
             Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, tonalElevation = 1.dp) {
-                Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Column(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     OutlinedTextField(
                         value = state.query,
                         onValueChange = onQueryChange,
-                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        modifier = Modifier.fillMaxWidth().height(44.dp),
                         singleLine = true,
-                        placeholder = { Text("Search tags") },
-                        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                        placeholder = { Text("Search tags", style = MaterialTheme.typography.bodySmall) },
+                        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null, modifier = Modifier.size(18.dp)) },
                         trailingIcon = {
-                            TextButton(onClick = onSearch, contentPadding = PaddingValues(horizontal = 8.dp)) { Text("Go") }
+                            TextButton(onClick = onSearch, contentPadding = PaddingValues(horizontal = 6.dp), modifier = Modifier.height(32.dp)) {
+                                Text("Go", style = MaterialTheme.typography.labelMedium)
+                            }
                         },
+                        textStyle = MaterialTheme.typography.bodySmall,
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                         keyboardActions = KeyboardActions(onSearch = { onSearch() })
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                        FilterChip(selected = state.safeEnabled, onClick = { onRatingsChange(!state.safeEnabled, state.questionableEnabled, state.explicitEnabled) }, label = { Text("S") })
-                        FilterChip(selected = state.questionableEnabled, onClick = { onRatingsChange(state.safeEnabled, !state.questionableEnabled, state.explicitEnabled) }, label = { Text("Q") })
-                        FilterChip(selected = state.explicitEnabled, onClick = { onRatingsChange(state.safeEnabled, state.questionableEnabled, !state.explicitEnabled) }, label = { Text("E") })
-                        Spacer(Modifier.width(4.dp))
-                        quickTags.take(3).forEach { tag -> AssistChip(onClick = { onTagClick(tag) }, label = { Text(tag) }) }
+                        FilterChip(selected = state.safeEnabled, onClick = { onRatingsChange(!state.safeEnabled, state.questionableEnabled, state.explicitEnabled) }, label = { Text("S", style = MaterialTheme.typography.labelSmall) })
+                        FilterChip(selected = state.questionableEnabled, onClick = { onRatingsChange(state.safeEnabled, !state.questionableEnabled, state.explicitEnabled) }, label = { Text("Q", style = MaterialTheme.typography.labelSmall) })
+                        FilterChip(selected = state.explicitEnabled, onClick = { onRatingsChange(state.safeEnabled, state.questionableEnabled, !state.explicitEnabled) }, label = { Text("E", style = MaterialTheme.typography.labelSmall) })
                     }
                 }
             }
@@ -235,23 +235,23 @@ private fun PaginationBar(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 2.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = onPrev, enabled = page > 1, modifier = Modifier.size(32.dp)) {
-                Icon(Icons.Filled.ChevronLeft, contentDescription = "Previous page")
+            IconButton(onClick = onPrev, enabled = page > 1, modifier = Modifier.size(28.dp)) {
+                Icon(Icons.Filled.ChevronLeft, contentDescription = "Previous page", modifier = Modifier.size(18.dp))
             }
-            Text("Page $page", style = MaterialTheme.typography.labelLarge)
-            IconButton(onClick = onNext, modifier = Modifier.size(32.dp)) {
-                Icon(Icons.Filled.ChevronRight, contentDescription = "Next page")
+            Text("$page", style = MaterialTheme.typography.labelMedium)
+            IconButton(onClick = onNext, modifier = Modifier.size(28.dp)) {
+                Icon(Icons.Filled.ChevronRight, contentDescription = "Next page", modifier = Modifier.size(18.dp))
             }
             OutlinedTextField(
                 value = jumpPageText,
                 onValueChange = onJumpPageTextChange,
                 singleLine = true,
-                modifier = Modifier.width(72.dp).height(44.dp),
+                modifier = Modifier.width(56.dp).height(40.dp),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Go),
                 keyboardActions = KeyboardActions(onGo = { onJump() }),
-                textStyle = MaterialTheme.typography.labelMedium
+                textStyle = MaterialTheme.typography.labelSmall
             )
-            TextButton(onClick = onJump, contentPadding = PaddingValues(horizontal = 4.dp)) { Text("Go") }
+            TextButton(onClick = onJump, contentPadding = PaddingValues(horizontal = 2.dp), modifier = Modifier.height(32.dp)) { Text("Go", style = MaterialTheme.typography.labelSmall) }
             Spacer(Modifier.weight(1f))
             ExposedDropdownMenuBox(expanded = pageSizeExpanded, onExpandedChange = onPageSizeExpandedChange) {
                 OutlinedTextField(
@@ -259,10 +259,9 @@ private fun PaginationBar(
                     onValueChange = {},
                     readOnly = true,
                     singleLine = true,
-                    label = { Text("Size") },
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = pageSizeExpanded) },
-                    modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).width(88.dp).height(48.dp),
-                    textStyle = MaterialTheme.typography.labelMedium
+                    modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).width(76.dp).height(40.dp),
+                    textStyle = MaterialTheme.typography.labelSmall
                 )
                 ExposedDropdownMenu(expanded = pageSizeExpanded, onDismissRequest = { onPageSizeExpandedChange(false) }) {
                     pageSizes.forEach { size ->

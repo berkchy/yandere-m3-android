@@ -3,9 +3,6 @@ package com.example.yanderem3.ui.screens
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibilityScope
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
@@ -63,7 +60,7 @@ import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
 import com.example.yanderem3.model.Post
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class, ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun DetailScreen(
     post: Post?,
@@ -71,8 +68,8 @@ fun DetailScreen(
     onBack: () -> Unit,
     onToggleFavorite: () -> Unit,
     onTagClick: (String) -> Unit,
-    animatedVisibilityScope: AnimatedVisibilityScope,
-    sharedTransitionScope: SharedTransitionScope
+    animatedVisibilityScope: Any? = null,
+    sharedTransitionScope: Any? = null
 ) {
     val context = LocalContext.current
     val clipboard = LocalClipboardManager.current
@@ -98,25 +95,20 @@ fun DetailScreen(
             }
 
             Box(Modifier.fillMaxSize()) {
-                with(sharedTransitionScope) {
-                    SubcomposeAsyncImage(
-                        model = post.detailImageUrl,
-                        contentDescription = "Post ${post.id} full image",
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .sharedBounds(
-                                sharedContentState = rememberSharedContentState(key = "post-${post.id}"),
-                                animatedVisibilityScope = animatedVisibilityScope
-                            )
-                            .graphicsLayer {
-                                scaleX = scale
-                                scaleY = scale
-                                translationX = offset.x
-                                translationY = offset.y
-                            }
-                            .transformable(transformState)
-                    ) {
+                SubcomposeAsyncImage(
+                    model = post.detailImageUrl,
+                    contentDescription = "Post ${post.id} full image",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            scaleX = scale
+                            scaleY = scale
+                            translationX = offset.x
+                            translationY = offset.y
+                        }
+                        .transformable(transformState)
+                ) {
                         when (painter.state) {
                             is AsyncImagePainter.State.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -131,7 +123,6 @@ fun DetailScreen(
                             else -> SubcomposeAsyncImageContent()
                         }
                     }
-                }
 
                 Row(
                     modifier = Modifier
