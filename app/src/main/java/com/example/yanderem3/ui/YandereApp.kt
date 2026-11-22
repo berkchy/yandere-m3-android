@@ -132,8 +132,8 @@ fun YandereApp(viewModel: AppViewModel) {
                             viewModel.searchTag(tag)
                             navController.popBackStack(Routes.GALLERY, inclusive = false)
                         },
-                        animatedVisibilityScope = null,
-                        sharedTransitionScope = null
+                        animatedVisibilityScope = this@composable,
+                        sharedTransitionScope = this@SharedTransitionLayout
                     )
                 }
                 composable(Routes.FAVORITES) {
