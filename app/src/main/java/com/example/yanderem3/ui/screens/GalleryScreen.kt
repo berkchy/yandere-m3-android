@@ -129,7 +129,7 @@ fun GalleryScreen(
                         placeholder = { Text("Search tags", style = MaterialTheme.typography.bodySmall) },
                         leadingIcon = { Icon(Icons.Rounded.Search, contentDescription = null, modifier = Modifier.size(18.dp)) },
                         trailingIcon = {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.padding(end = 4.dp)) {
                                 RatingIconButton(selected = state.safeEnabled, icon = Icons.Rounded.Shield, contentDescription = "Safe") {
                                     onRatingsChange(!state.safeEnabled, state.questionableEnabled, state.explicitEnabled)
                                 }
@@ -139,6 +139,7 @@ fun GalleryScreen(
                                 RatingIconButton(selected = state.explicitEnabled, icon = Icons.Rounded.Explicit, contentDescription = "Explicit") {
                                     onRatingsChange(state.safeEnabled, state.questionableEnabled, !state.explicitEnabled)
                                 }
+                                Spacer(Modifier.width(2.dp))
                                 TextButton(onClick = onSearch, contentPadding = PaddingValues(horizontal = 8.dp), modifier = Modifier.height(32.dp)) {
                                     Text("Go", style = MaterialTheme.typography.labelMedium)
                                 }
@@ -281,11 +282,12 @@ private fun PaginationBar(
                 value = jumpPageText,
                 onValueChange = onJumpPageTextChange,
                 singleLine = true,
-                modifier = Modifier.width(64.dp).height(40.dp),
+                maxLines = 1,
+                modifier = Modifier.width(64.dp).heightIn(min = 48.dp),
                 shape = RoundedCornerShape(12.dp),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Go),
                 keyboardActions = KeyboardActions(onGo = { onJump() }),
-                textStyle = MaterialTheme.typography.labelSmall,
+                textStyle = MaterialTheme.typography.labelSmall.copy(lineHeight = MaterialTheme.typography.labelSmall.fontSize),
                 colors = compactFieldColors
             )
             TextButton(onClick = onJump, contentPadding = PaddingValues(horizontal = 8.dp), modifier = Modifier.height(34.dp), shape = RoundedCornerShape(12.dp)) {
@@ -298,10 +300,11 @@ private fun PaginationBar(
                     onValueChange = {},
                     readOnly = true,
                     singleLine = true,
+                    maxLines = 1,
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = pageSizeExpanded) },
-                    modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).width(84.dp).height(40.dp),
+                    modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).width(92.dp).heightIn(min = 48.dp),
                     shape = RoundedCornerShape(12.dp),
-                    textStyle = MaterialTheme.typography.labelSmall,
+                    textStyle = MaterialTheme.typography.labelSmall.copy(lineHeight = MaterialTheme.typography.labelSmall.fontSize),
                     colors = compactFieldColors
                 )
                 ExposedDropdownMenu(expanded = pageSizeExpanded, onDismissRequest = { onPageSizeExpandedChange(false) }) {
