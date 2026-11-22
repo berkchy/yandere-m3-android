@@ -105,8 +105,8 @@ fun YandereApp(viewModel: AppViewModel) {
                             viewModel.selectPost(post)
                             navController.navigate(Routes.detail(post.id))
                         },
-                        animatedVisibilityScope = null,
-                        sharedTransitionScope = null
+                        animatedVisibilityScope = this@composable,
+                        sharedTransitionScope = this@SharedTransitionLayout
                     )
                 }
                 composable(
@@ -157,8 +157,8 @@ fun YandereApp(viewModel: AppViewModel) {
                                 restoreState = true
                             }
                         },
-                        animatedVisibilityScope = null,
-                        sharedTransitionScope = null
+                        animatedVisibilityScope = this@composable,
+                        sharedTransitionScope = this@SharedTransitionLayout
                     )
                 }
             }
