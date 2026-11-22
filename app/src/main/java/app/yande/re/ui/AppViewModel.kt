@@ -1,12 +1,16 @@
 package app.yande.re.ui
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import app.yande.re.data.local.UserSettings
 import app.yande.re.data.repository.PostRepository
+import app.yande.re.model.DownloadRecord
 import app.yande.re.model.FavoritePost
 import app.yande.re.model.Post
+import app.yande.re.util.DownloadUtil
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -39,6 +43,8 @@ class AppViewModel(private val repository: PostRepository) : ViewModel() {
     val favoriteIds: StateFlow<Set<Long>> = repository.favoriteIds
         .map { it.toSet() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
+    val downloads: StateFlow<List<DownloadRecord>> = repository.downloads
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val _gallery = MutableStateFlow(GalleryUiState())
     val gallery: StateFlow<GalleryUiState> = _gallery.asStateFlow()
@@ -47,6 +53,7 @@ class AppViewModel(private val repository: PostRepository) : ViewModel() {
     val selectedPost: StateFlow<Post?> = _selectedPost.asStateFlow()
 
     private var initialized = false
+    private val monitorJobs = mutableMapOf<Long, Job>()
 
     fun initialize() {
         if (initialized) return

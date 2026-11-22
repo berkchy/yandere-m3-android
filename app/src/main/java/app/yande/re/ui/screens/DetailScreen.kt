@@ -252,10 +252,11 @@ fun DetailScreen(
                             leadingIcon = { Icon(Icons.Filled.OpenInBrowser, contentDescription = null) }
                         )
                     }
-                    if (post.tagsList.isNotEmpty()) {
+                    val tags = post.tags.split(' ').map { it.trim() }.filter { it.isNotBlank() }
+                    if (tags.isNotEmpty()) {
                         Text("Tags", style = MaterialTheme.typography.titleMedium)
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            post.tagsList.take(120).forEach { tag ->
+                            tags.take(120).forEach { tag ->
                                 AssistChip(onClick = { showInfo = false; onTagClick(tag) }, label = { Text(tag, maxLines = 1, overflow = TextOverflow.Ellipsis) })
                             }
                         }
