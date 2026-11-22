@@ -73,12 +73,12 @@ fun PostCard(
         ) {
             Box {
                 SubcomposeAsyncImage(
-                    model = post.displayImageUrl,
+                    model = post.gridImageUrl,
                     contentDescription = "Post ${post.id}",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .aspectRatio(ratio.coerceIn(0.6f, 1.6f))
+                        .aspectRatio(ratio.coerceIn(0.7f, 1.5f))
                 ) {
                     when (painter.state) {
                         is AsyncImagePainter.State.Loading -> ShimmerBlock(Modifier.fillMaxSize())

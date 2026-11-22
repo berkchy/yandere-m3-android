@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
@@ -116,49 +117,27 @@ fun GalleryScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            Surface(
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
-                tonalElevation = 1.dp
-            ) {
-                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+            Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, tonalElevation = 1.dp) {
+                Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     OutlinedTextField(
                         value = state.query,
                         onValueChange = onQueryChange,
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().height(52.dp),
                         singleLine = true,
-                        label = { Text("Search tags") },
-                        placeholder = { Text("e.g. landscape rating:s") },
+                        placeholder = { Text("Search tags") },
+                        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
                         trailingIcon = {
-                            IconButton(onClick = onSearch) {
-                                Icon(Icons.Filled.Search, contentDescription = "Search")
-                            }
+                            TextButton(onClick = onSearch, contentPadding = PaddingValues(horizontal = 8.dp)) { Text("Go") }
                         },
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                         keyboardActions = KeyboardActions(onSearch = { onSearch() })
                     )
-                    Spacer(Modifier.height(8.dp))
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        quickTags.forEach { tag ->
-                            AssistChip(onClick = { onTagClick(tag) }, label = { Text(tag) })
-                        }
-                    }
-                    Spacer(Modifier.height(8.dp))
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilterChip(
-                            selected = state.safeEnabled,
-                            onClick = { onRatingsChange(!state.safeEnabled, state.questionableEnabled, state.explicitEnabled) },
-                            label = { Text("Safe") }
-                        )
-                        FilterChip(
-                            selected = state.questionableEnabled,
-                            onClick = { onRatingsChange(state.safeEnabled, !state.questionableEnabled, state.explicitEnabled) },
-                            label = { Text("Questionable") }
-                        )
-                        FilterChip(
-                            selected = state.explicitEnabled,
-                            onClick = { onRatingsChange(state.safeEnabled, state.questionableEnabled, !state.explicitEnabled) },
-                            label = { Text("Explicit") }
-                        )
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                        FilterChip(selected = state.safeEnabled, onClick = { onRatingsChange(!state.safeEnabled, state.questionableEnabled, state.explicitEnabled) }, label = { Text("S") })
+                        FilterChip(selected = state.questionableEnabled, onClick = { onRatingsChange(state.safeEnabled, !state.questionableEnabled, state.explicitEnabled) }, label = { Text("Q") })
+                        FilterChip(selected = state.explicitEnabled, onClick = { onRatingsChange(state.safeEnabled, state.questionableEnabled, !state.explicitEnabled) }, label = { Text("E") })
+                        Spacer(Modifier.width(4.dp))
+                        quickTags.take(3).forEach { tag -> AssistChip(onClick = { onTagClick(tag) }, label = { Text(tag) }) }
                     }
                 }
             }
@@ -168,7 +147,7 @@ fun GalleryScreen(
                 pageSize = state.pageSize,
                 pageSizes = pageSizes,
                 jumpPageText = jumpPageText,
-                onJumpPageTextChange = { jumpPageText = it.filter(Char::isDigit).take(5) },
+                onJumpPageTextChange = { jumpPageText = it.filter(Char::isDigit).take(4) },
                 onJump = { jumpPageText.toIntOrNull()?.let(onPageChange) },
                 onPrev = onPrevPage,
                 onNext = onNextPage,
@@ -200,10 +179,10 @@ fun GalleryScreen(
                         Text("No posts found", style = MaterialTheme.typography.bodyLarge)
                     }
                     else -> LazyVerticalStaggeredGrid(
-                        columns = StaggeredGridCells.Adaptive(170.dp),
-                        contentPadding = PaddingValues(12.dp),
-                        verticalItemSpacing = 12.dp,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        columns = StaggeredGridCells.Adaptive(160.dp),
+                        contentPadding = PaddingValues(8.dp),
+                        verticalItemSpacing = 8.dp,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.fillMaxSize()
                     ) {
                         items(posts, key = { it.id }) { post ->
@@ -251,49 +230,43 @@ private fun PaginationBar(
     pageSizeExpanded: Boolean,
     onPageSizeExpandedChange: (Boolean) -> Unit
 ) {
-    Surface(color = MaterialTheme.colorScheme.surfaceContainer, tonalElevation = 1.dp) {
-        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onPrev, enabled = page > 1) {
-                    Icon(Icons.Filled.ChevronLeft, contentDescription = "Previous page")
-                }
-                Text("Page $page", style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
-                IconButton(onClick = onNext) {
-                    Icon(Icons.Filled.ChevronRight, contentDescription = "Next page")
-                }
+    Surface(color = MaterialTheme.colorScheme.surfaceContainer, tonalElevation = 0.dp) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 2.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onPrev, enabled = page > 1, modifier = Modifier.size(32.dp)) {
+                Icon(Icons.Filled.ChevronLeft, contentDescription = "Previous page")
             }
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("Page $page", style = MaterialTheme.typography.labelLarge)
+            IconButton(onClick = onNext, modifier = Modifier.size(32.dp)) {
+                Icon(Icons.Filled.ChevronRight, contentDescription = "Next page")
+            }
+            OutlinedTextField(
+                value = jumpPageText,
+                onValueChange = onJumpPageTextChange,
+                singleLine = true,
+                modifier = Modifier.width(72.dp).height(44.dp),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Go),
+                keyboardActions = KeyboardActions(onGo = { onJump() }),
+                textStyle = MaterialTheme.typography.labelMedium
+            )
+            TextButton(onClick = onJump, contentPadding = PaddingValues(horizontal = 4.dp)) { Text("Go") }
+            Spacer(Modifier.weight(1f))
+            ExposedDropdownMenuBox(expanded = pageSizeExpanded, onExpandedChange = onPageSizeExpandedChange) {
                 OutlinedTextField(
-                    value = jumpPageText,
-                    onValueChange = onJumpPageTextChange,
-                    label = { Text("Jump to page") },
+                    value = "$pageSize",
+                    onValueChange = {},
+                    readOnly = true,
                     singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Go),
-                    keyboardActions = KeyboardActions(onGo = { onJump() }),
-                    modifier = Modifier.weight(1f)
+                    label = { Text("Size") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = pageSizeExpanded) },
+                    modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).width(88.dp).height(48.dp),
+                    textStyle = MaterialTheme.typography.labelMedium
                 )
-                Spacer(Modifier.width(8.dp))
-                TextButton(onClick = onJump) { Text("Go") }
-                Spacer(Modifier.width(8.dp))
-                ExposedDropdownMenuBox(expanded = pageSizeExpanded, onExpandedChange = onPageSizeExpandedChange) {
-                    OutlinedTextField(
-                        value = "$pageSize / page",
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Page size") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = pageSizeExpanded) },
-                        modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable).width(140.dp)
-                    )
-                    ExposedDropdownMenu(expanded = pageSizeExpanded, onDismissRequest = { onPageSizeExpandedChange(false) }) {
-                        pageSizes.forEach { size ->
-                            DropdownMenuItem(
-                                text = { Text("$size / page") },
-                                onClick = {
-                                    onPageSizeExpandedChange(false)
-                                    onPageSizeChange(size)
-                                }
-                            )
-                        }
+                ExposedDropdownMenu(expanded = pageSizeExpanded, onDismissRequest = { onPageSizeExpandedChange(false) }) {
+                    pageSizes.forEach { size ->
+                        DropdownMenuItem(text = { Text("$size") }, onClick = { onPageSizeExpandedChange(false); onPageSizeChange(size) })
                     }
                 }
             }

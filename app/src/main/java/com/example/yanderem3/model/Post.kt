@@ -24,12 +24,7 @@ data class Post(
     val source: String = "",
     val author: String = ""
 ) {
-    val displayImageUrl: String
-        get() = sampleUrl?.takeIf { it.isNotBlank() }
-            ?: previewUrl?.takeIf { it.isNotBlank() }
-            ?: fileUrl.orEmpty()
-
-    val previewImageUrl: String
+    val gridImageUrl: String
         get() = previewUrl?.takeIf { it.isNotBlank() }
             ?: sampleUrl?.takeIf { it.isNotBlank() }
             ?: fileUrl.orEmpty()
