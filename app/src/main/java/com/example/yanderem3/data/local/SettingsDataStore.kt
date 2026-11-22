@@ -19,7 +19,10 @@ data class UserSettings(
     val explicitEnabled: Boolean = false,
     val pageSize: Int = 40,
     val lastPage: Int = 1,
-    val lastTags: String = ""
+    val lastTags: String = "",
+    val downloadFolder: String = "Pictures/YandeM3",
+    val wifiOnlyDownloads: Boolean = false,
+    val filenamePattern: String = "post_id"
 )
 
 class SettingsDataStore(private val context: Context) {
@@ -32,6 +35,9 @@ class SettingsDataStore(private val context: Context) {
         val PAGE_SIZE = intPreferencesKey("page_size")
         val LAST_PAGE = intPreferencesKey("last_page")
         val LAST_TAGS = stringPreferencesKey("last_tags")
+        val DOWNLOAD_FOLDER = stringPreferencesKey("download_folder")
+        val WIFI_ONLY_DOWNLOADS = booleanPreferencesKey("wifi_only_downloads")
+        val FILENAME_PATTERN = stringPreferencesKey("filename_pattern")
     }
 
     val settings: Flow<UserSettings> = context.dataStore.data.map { prefs ->
@@ -43,7 +49,10 @@ class SettingsDataStore(private val context: Context) {
             explicitEnabled = prefs[Keys.EXPLICIT] ?: false,
             pageSize = prefs[Keys.PAGE_SIZE] ?: 40,
             lastPage = prefs[Keys.LAST_PAGE] ?: 1,
-            lastTags = prefs[Keys.LAST_TAGS] ?: ""
+            lastTags = prefs[Keys.LAST_TAGS] ?: "",
+            downloadFolder = prefs[Keys.DOWNLOAD_FOLDER] ?: "Pictures/YandeM3",
+            wifiOnlyDownloads = prefs[Keys.WIFI_ONLY_DOWNLOADS] ?: false,
+            filenamePattern = prefs[Keys.FILENAME_PATTERN] ?: "post_id"
         )
     }
 
@@ -57,4 +66,7 @@ class SettingsDataStore(private val context: Context) {
     suspend fun setPageSize(size: Int) = context.dataStore.edit { it[Keys.PAGE_SIZE] = size }
     suspend fun setLastPage(page: Int) = context.dataStore.edit { it[Keys.LAST_PAGE] = page }
     suspend fun setLastTags(tags: String) = context.dataStore.edit { it[Keys.LAST_TAGS] = tags }
+    suspend fun setDownloadFolder(folder: String) = context.dataStore.edit { it[Keys.DOWNLOAD_FOLDER] = folder }
+    suspend fun setWifiOnlyDownloads(enabled: Boolean) = context.dataStore.edit { it[Keys.WIFI_ONLY_DOWNLOADS] = enabled }
+    suspend fun setFilenamePattern(pattern: String) = context.dataStore.edit { it[Keys.FILENAME_PATTERN] = pattern }
 }

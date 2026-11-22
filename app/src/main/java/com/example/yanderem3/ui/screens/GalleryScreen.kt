@@ -10,8 +10,6 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,15 +22,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
@@ -55,7 +54,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -65,17 +63,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.example.yanderem3.data.local.UserSettings
 import com.example.yanderem3.model.Post
 import com.example.yanderem3.ui.GalleryUiState
 import com.example.yanderem3.ui.components.PostCard
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class, ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun GalleryScreen(
     state: GalleryUiState,
     favoriteIds: Set<Long>,
-    darkMode: Boolean,
-    dynamicColor: Boolean,
+    settings: UserSettings,
     onQueryChange: (String) -> Unit,
     onSearch: () -> Unit,
     onTagClick: (String) -> Unit,
@@ -86,6 +84,9 @@ fun GalleryScreen(
     onRatingsChange: (Boolean, Boolean, Boolean) -> Unit,
     onToggleDarkMode: (Boolean) -> Unit,
     onToggleDynamicColor: (Boolean) -> Unit,
+    onDownloadFolderChange: (String) -> Unit,
+    onWifiOnlyDownloadsChange: (Boolean) -> Unit,
+    onFilenamePatternChange: (String) -> Unit,
     onRefresh: () -> Unit,
     onToggleFavorite: (Post) -> Unit,
     onPostClick: (Post) -> Unit,
@@ -101,9 +102,7 @@ fun GalleryScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Explore") },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                ),
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
                 actions = {
                     IconButton(onClick = onRefresh) { Icon(Icons.Filled.Refresh, contentDescription = "Refresh") }
                     IconButton(onClick = { showSettings = true }) { Icon(Icons.Filled.Settings, contentDescription = "Settings") }
@@ -111,11 +110,7 @@ fun GalleryScreen(
             )
         }
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
+        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
             Surface(color = MaterialTheme.colorScheme.surfaceContainerLow, tonalElevation = 1.dp) {
                 Column(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     OutlinedTextField(
@@ -163,9 +158,7 @@ fun GalleryScreen(
                 modifier = Modifier.fillMaxSize()
             ) { (loading, error, posts) ->
                 when {
-                    loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
+                    loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
                     error != null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(24.dp)) {
                             Text("Unable to load posts", style = MaterialTheme.typography.titleMedium)
@@ -204,11 +197,31 @@ fun GalleryScreen(
 
     if (showSettings) {
         ModalBottomSheet(onDismissRequest = { showSettings = false }) {
-            Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)) {
+            Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp).verticalScroll(rememberScrollState())) {
                 Text("Settings", style = MaterialTheme.typography.titleLarge)
                 Spacer(Modifier.height(16.dp))
-                SettingRow("Dark mode", "Use dark theme", darkMode, onToggleDarkMode)
-                SettingRow("Dynamic color", "Use Material You colors on Android 12+", dynamicColor, onToggleDynamicColor)
+                SettingRow("Dark mode", "Use dark theme", settings.darkMode, onToggleDarkMode)
+                SettingRow("Dynamic color", "Use Material You colors on Android 12+", settings.dynamicColor, onToggleDynamicColor)
+                Spacer(Modifier.height(16.dp))
+                Text("Downloads", style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = settings.downloadFolder,
+                    onValueChange = onDownloadFolderChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    label = { Text("Download subfolder") },
+                    placeholder = { Text("Pictures/YandeM3") }
+                )
+                Spacer(Modifier.height(8.dp))
+                SettingRow("Wi-Fi only downloads", "Allow downloads only on Wi-Fi", settings.wifiOnlyDownloads, onWifiOnlyDownloadsChange)
+                Spacer(Modifier.height(8.dp))
+                Text("Filename pattern", style = MaterialTheme.typography.bodyMedium)
+                Spacer(Modifier.height(4.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(selected = settings.filenamePattern == "post_id", onClick = { onFilenamePatternChange("post_id") }, label = { Text("Post ID") })
+                    FilterChip(selected = settings.filenamePattern == "yande_id_md5", onClick = { onFilenamePatternChange("yande_id_md5") }, label = { Text("yande_<id>_<hash>") })
+                }
                 Spacer(Modifier.height(24.dp))
             }
         }

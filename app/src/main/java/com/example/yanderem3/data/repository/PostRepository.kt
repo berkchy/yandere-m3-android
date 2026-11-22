@@ -37,4 +37,7 @@ class PostRepository(
     suspend fun setPageSize(size: Int) = settingsDataStore.setPageSize(size)
     suspend fun setLastPage(page: Int) = settingsDataStore.setLastPage(page)
     suspend fun setLastTags(tags: String) = settingsDataStore.setLastTags(tags)
+    suspend fun setDownloadFolder(folder: String) = settingsDataStore.setDownloadFolder(folder)
+    suspend fun setWifiOnlyDownloads(enabled: Boolean) = settingsDataStore.setWifiOnlyDownloads(enabled)
+    suspend fun setFilenamePattern(pattern: String) = settingsDataStore.setFilenamePattern(pattern)
 }

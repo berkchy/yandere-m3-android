@@ -87,8 +87,7 @@ fun YandereApp(viewModel: AppViewModel) {
                     GalleryScreen(
                         state = galleryState,
                         favoriteIds = favoriteIds,
-                        darkMode = settings.darkMode,
-                        dynamicColor = settings.dynamicColor,
+                        settings = settings,
                         onQueryChange = viewModel::onQueryChange,
                         onSearch = viewModel::applySearch,
                         onTagClick = viewModel::searchTag,
@@ -99,6 +98,9 @@ fun YandereApp(viewModel: AppViewModel) {
                         onRatingsChange = viewModel::setRatings,
                         onToggleDarkMode = viewModel::toggleDarkMode,
                         onToggleDynamicColor = viewModel::toggleDynamicColor,
+                        onDownloadFolderChange = viewModel::setDownloadFolder,
+                        onWifiOnlyDownloadsChange = viewModel::setWifiOnlyDownloads,
+                        onFilenamePatternChange = viewModel::setFilenamePattern,
                         onRefresh = viewModel::refresh,
                         onToggleFavorite = viewModel::toggleFavorite,
                         onPostClick = { post ->
@@ -126,6 +128,7 @@ fun YandereApp(viewModel: AppViewModel) {
                     DetailScreen(
                         post = post,
                         isFavorite = post?.let { favoriteIds.contains(it.id) } ?: false,
+                        settings = settings,
                         onBack = { navController.popBackStack() },
                         onToggleFavorite = { post?.let(viewModel::toggleFavorite) },
                         onTagClick = { tag ->

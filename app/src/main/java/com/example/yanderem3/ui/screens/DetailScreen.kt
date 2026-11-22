@@ -1,5 +1,7 @@
 package com.example.yanderem3.ui.screens
 
+import android.app.DownloadManager
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
@@ -17,15 +19,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.CircularProgressIndicator
@@ -38,8 +39,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -58,13 +61,19 @@ import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
+import com.example.yanderem3.data.local.UserSettings
 import com.example.yanderem3.model.Post
+import com.example.yanderem3.util.DownloadUtil
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun DetailScreen(
     post: Post?,
     isFavorite: Boolean,
+    settings: UserSettings,
     onBack: () -> Unit,
     onToggleFavorite: () -> Unit,
     onTagClick: (String) -> Unit,
@@ -72,6 +81,19 @@ fun DetailScreen(
     val context = LocalContext.current
     val clipboard = LocalClipboardManager.current
     var showInfo by remember { mutableStateOf(false) }
+    var downloadId by remember { mutableLongStateOf(-1L) }
+    var downloadStatus by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(downloadId) {
+        if (downloadId <= 0L) return@LaunchedEffect
+        val dm = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        while (true) {
+            val status = withContext(Dispatchers.IO) { queryDownloadStatus(dm, downloadId) }
+            downloadStatus = status
+            if (status == "Download completed" || status.startsWith("Download failed")) break
+            delay(1000)
+        }
+    }
 
     Dialog(
         onDismissRequest = onBack,
@@ -107,20 +129,20 @@ fun DetailScreen(
                         }
                         .transformable(transformState)
                 ) {
-                        when (painter.state) {
-                            is AsyncImagePainter.State.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                    CircularProgressIndicator(color = Color.White)
-                                    Spacer(Modifier.height(12.dp))
-                                    Text("Loading full image", color = Color.White, style = MaterialTheme.typography.bodyMedium)
-                                }
+                    when (painter.state) {
+                        is AsyncImagePainter.State.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                CircularProgressIndicator(color = Color.White)
+                                Spacer(Modifier.height(12.dp))
+                                Text("Loading full image", color = Color.White, style = MaterialTheme.typography.bodyMedium)
                             }
-                            is AsyncImagePainter.State.Error -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                Text("Unable to load image", color = Color.White)
-                            }
-                            else -> SubcomposeAsyncImageContent()
                         }
+                        is AsyncImagePainter.State.Error -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text("Unable to load image", color = Color.White)
+                        }
+                        else -> SubcomposeAsyncImageContent()
                     }
+                }
 
                 Row(
                     modifier = Modifier
@@ -140,18 +162,36 @@ fun DetailScreen(
                         )
                     }
                     IconButton(onClick = {
-                        val url = post.fileUrl ?: post.detailImageUrl
-                        if (url.isNotBlank()) context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-                    }) { Icon(Icons.Filled.Download, contentDescription = "Open original", tint = Color.White) }
+                        runCatching { DownloadUtil.enqueueDownload(context, post, settings) }
+                            .onSuccess { id ->
+                                downloadId = id
+                                downloadStatus = "Download started"
+                                Toast.makeText(context, "Download started", Toast.LENGTH_SHORT).show()
+                            }
+                            .onFailure {
+                                downloadStatus = "Download failed"
+                                Toast.makeText(context, "Download failed", Toast.LENGTH_SHORT).show()
+                            }
+                    }) { Icon(Icons.Filled.Download, contentDescription = "Download full image", tint = Color.White) }
                 }
 
-                Surface(
-                    onClick = { showInfo = true },
+                Column(
                     modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp),
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.92f),
-                    shape = MaterialTheme.shapes.large
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text("Details & Tags", modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp), style = MaterialTheme.typography.labelLarge)
+                    if (downloadStatus != null) {
+                        Surface(color = Color.Black.copy(alpha = 0.55f), shape = MaterialTheme.shapes.small) {
+                            Text(downloadStatus!!, color = Color.White, style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp))
+                        }
+                        Spacer(Modifier.height(8.dp))
+                    }
+                    Surface(
+                        onClick = { showInfo = true },
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.92f),
+                        shape = MaterialTheme.shapes.large
+                    ) {
+                        Text("Details & Tags", modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp), style = MaterialTheme.typography.labelLarge)
+                    }
                 }
             }
 
@@ -171,25 +211,44 @@ fun DetailScreen(
                                 MetaRow("File type", post.fileExt.ifBlank { "Unknown" }.uppercase())
                             }
                         }
+                        if (downloadStatus != null) {
+                            Text(downloadStatus!!, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+                        }
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            AssistChip(
+                                onClick = {
+                                    runCatching { DownloadUtil.enqueueDownload(context, post, settings) }
+                                        .onSuccess { id ->
+                                            downloadId = id
+                                            downloadStatus = "Download started"
+                                            Toast.makeText(context, "Download started", Toast.LENGTH_SHORT).show()
+                                        }
+                                        .onFailure {
+                                            downloadStatus = "Download failed"
+                                            Toast.makeText(context, "Download failed", Toast.LENGTH_SHORT).show()
+                                        }
+                                },
+                                label = { Text("Download Full HD") },
+                                leadingIcon = { Icon(Icons.Filled.Download, contentDescription = null) }
+                            )
                             AssistChip(
                                 onClick = {
                                     val url = post.fileUrl ?: post.detailImageUrl
                                     if (url.isNotBlank()) context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
                                 },
                                 label = { Text("Open Original") },
-                                leadingIcon = { Icon(Icons.Filled.Download, contentDescription = null) }
-                            )
-                            AssistChip(
-                                onClick = {
-                                    val url = post.fileUrl ?: post.detailImageUrl
-                                    clipboard.setText(AnnotatedString(url))
-                                    Toast.makeText(context, "URL copied", Toast.LENGTH_SHORT).show()
-                                },
-                                label = { Text("Copy URL") },
-                                leadingIcon = { Icon(Icons.Filled.ContentCopy, contentDescription = null) }
+                                leadingIcon = { Icon(Icons.Filled.OpenInBrowser, contentDescription = null) }
                             )
                         }
+                        AssistChip(
+                            onClick = {
+                                val url = post.fileUrl ?: post.detailImageUrl
+                                clipboard.setText(AnnotatedString(url))
+                                Toast.makeText(context, "URL copied", Toast.LENGTH_SHORT).show()
+                            },
+                            label = { Text("Copy URL") },
+                            leadingIcon = { Icon(Icons.Filled.ContentCopy, contentDescription = null) }
+                        )
                         Text("Tags", style = MaterialTheme.typography.titleMedium)
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             post.tagList.forEach { tag ->
@@ -200,6 +259,21 @@ fun DetailScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+private fun queryDownloadStatus(downloadManager: DownloadManager, id: Long): String {
+    val cursor = downloadManager.query(DownloadManager.Query().setFilterById(id)) ?: return "Download failed"
+    cursor.use {
+        if (!it.moveToFirst()) return "Download queued"
+        return when (it.getInt(it.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))) {
+            DownloadManager.STATUS_SUCCESSFUL -> "Download completed"
+            DownloadManager.STATUS_FAILED -> "Download failed. Tap download to retry."
+            DownloadManager.STATUS_PAUSED -> "Download paused"
+            DownloadManager.STATUS_PENDING -> "Download queued"
+            DownloadManager.STATUS_RUNNING -> "Download in progress"
+            else -> "Download in progress"
         }
     }
 }

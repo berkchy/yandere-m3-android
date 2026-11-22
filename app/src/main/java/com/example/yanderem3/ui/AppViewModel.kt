@@ -132,6 +132,9 @@ class AppViewModel(private val repository: PostRepository) : ViewModel() {
 
     fun toggleDarkMode(enabled: Boolean) = viewModelScope.launch { repository.setDarkMode(enabled) }
     fun toggleDynamicColor(enabled: Boolean) = viewModelScope.launch { repository.setDynamicColor(enabled) }
+    fun setDownloadFolder(folder: String) = viewModelScope.launch { repository.setDownloadFolder(folder.trim().ifBlank { "Pictures/YandeM3" }) }
+    fun setWifiOnlyDownloads(enabled: Boolean) = viewModelScope.launch { repository.setWifiOnlyDownloads(enabled) }
+    fun setFilenamePattern(pattern: String) = viewModelScope.launch { repository.setFilenamePattern(pattern) }
 
     fun selectPost(post: Post?) { _selectedPost.value = post }
 
