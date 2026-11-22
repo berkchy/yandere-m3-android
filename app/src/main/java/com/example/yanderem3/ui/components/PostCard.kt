@@ -31,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImagePainter
@@ -109,7 +110,7 @@ fun PostCard(
                         .padding(4.dp)
                 ) {
                     Surface(
-                        shape = MaterialTheme.shapes.full,
+                        shape = CircleShape,
                         color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.88f)
                     ) {
                         Icon(
